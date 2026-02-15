@@ -1,5 +1,5 @@
 """
-Crazy DAG: Maximizes Graph View complexity—lots of branches, joins, crossing lines (TaskFlow API).
+4. Create your own crazy DAG that results in the most complex looking “Graph View” representation of the DAG as possible. The more lines, dependencies, etc, the better! Feel free to have fun with this one.
 """
 from datetime import datetime
 
