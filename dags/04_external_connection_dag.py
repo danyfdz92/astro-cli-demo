@@ -55,7 +55,7 @@ SNOWFLAKE_ROLE = "ASTRONOMER_RW"
 # MYR to USD rate; override via Airflow Variable "myr_to_usd_rate" (e.g. 0.22)
 DEFAULT_MYR_TO_USD = 0.22
 # Cap rows passed between tasks (XCom size limit); set Variable "job_etl_max_rows" to change
-DEFAULT_MAX_ROWS = 10
+DEFAULT_MAX_ROWS = 1000
 
 
 def _parse_salary_median_myr(salary_raw: Any) -> Optional[float]:
