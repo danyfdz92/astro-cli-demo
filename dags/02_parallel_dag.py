@@ -1,7 +1,18 @@
 """
 2. Create a parallel DAG with at least 4 tasks where each task is run independently.
 
+This DAG contains four tasks:
+- task_a
+- task_b
+- task_c
+- task_d
 
+Schedule - No schedule, therefore, we should trigger this DAG manually
+
+Start_date - December 1, 2021
+
+Catchup - False
+  - The scheduler will only run the most recent interval
 """
 from datetime import datetime
 
@@ -32,7 +43,6 @@ def parallel_independent_tasks():
     def task_d():
         print("Task D executed independently")
 
-    # Call all four; no args between them → no dependencies → all run in parallel
     task_a()
     task_b()
     task_c()
