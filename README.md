@@ -8,24 +8,27 @@ A project to build, run, and observe data products using Astronomer
 Project Contents
 ================
 
+```bash
 .
-├── .env # Local environment variables
-├── dags # Where your dags go
-│   ├── `exampledag.py` # Example dag that showcases a simple ETL data pipeline
-│   └── `01_serial_dag.py`: Create a DAG with at least 4 tasks that are serially dependent.
-│   └── `02_parallel_dag.py`: Create a parallel DAG with at least 4 tasks where each task is run independently.
-│   └── `03_crazy_dag.py`: Create your own crazy DAG that results in the most complex looking “Graph View” representation of the DAG as possible.
-│   └── `04_external_connection_dag.py`: Connecting to External Systems
-├── include # For any other files you'd like to include
-├── plugins # For any custom or community Airflow plugins
+├── dags/
+│   ├── 01_serial_dag.py             # 4 tasks in a serial chain
+│   ├── 02_parallel_dag.py           # 4 tasks running independently
+│   ├── 03_crazy_dag.py              # crazy DAG that results in the most complex looking “Graph View”
+│   ├── 04_external_connection_dag.py # External systems connection
+│   └── exampledag.py                # Basic ETL pipeline example
+├── images/                          # Graph screenshots and analysis
+├── include/                         # Additional static files
+├── plugins/                         # Custom Airflow plugins
 │   └── example-plugin.py
-├── tests # For any dag unit test files to be run with pytest
-│   └── test_dag_example.py # Example test that checks for basic errors in your dags
-├── airflow_settings.yaml # For your Airflow connections, variables and pools (local only)
-├── packages.txt # For OS-level packages
-└── requirements.txt # For Python packages
-└── sql # sql files needed for `04_external_connection_dag.py`
-└── images # graphs from our analysis -> Latinas In Tech - Jobs - Malaysia
+├── sql/                             # SQL scripts for DAG 04
+├── tests/                           # Unit tests for DAGs
+│   └── test_dag_example.py
+├── .env                             # Local environment variables
+├── airflow_settings.yaml            # Connections, variables, and pools
+├── packages.txt                     # OS-level dependencies
+└── requirements.txt                 # Python dependencies
+
+```
 
 
 Deploy This Project Locally
