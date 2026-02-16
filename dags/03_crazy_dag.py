@@ -37,7 +37,7 @@ from airflow.models.baseoperator import cross_downstream
 )
 def crazy_graph_dag():
 
-    @task
+    @task(queue='extra')
     def leaf_node(label):
         return label
 
