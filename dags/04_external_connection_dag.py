@@ -1,35 +1,28 @@
 """
-External Systems DAG: Real ETL from Hugging Face job dataset to Snowflake.
-Uses TaskFlow API only: @dag / @task decorators; data passed via task arguments
-(no manual XCom—see https://www.astronomer.io/docs/learn/airflow-decorators/).
+Connecting to External Systems
+a. Leverage at least one shared connection in your DAGs. It’s common to include a connection to a cloud service provider or a cloud database like Snowflake or Databricks.
+b. BONUS: Demonstrate a realistic use case with your DAG.
+
+Latinas In Tech - JobStreet Job Postings - Malaysia
+
+This DAG contains 4 tasks:
 
 - Extract: azrai99/job-dataset from Hugging Face (https://huggingface.co/datasets/azrai99/job-dataset).
-- Transform: Parse salary range, compute median, convert MYR to USD.
-- Load: Write to Snowflake table careers.job_listings (connection_id: data_warehouse).
+  - This dataset brings together a comprehensive collection of job listings sourced from JobStreet. It will be used to analyze job market trends, uncover hiring patterns, and better understand the dynamics shaping employment opportunities.
 
-Create the schema and table in Snowflake (in database PRODUCTION) before first run, e.g.:
+- Validate: Confirm that the records have been successfully extracted and that the dataset includes all columns required by the production.careers.job_listings table.
 
-  CREATE SCHEMA IF NOT EXISTS PRODUCTION.careers;
-  CREATE TABLE IF NOT EXISTS PRODUCTION.careers.job_listings (
-    job_id NUMBER,
-    job_title VARCHAR(500),
-    company VARCHAR(500),
-    descriptions VARCHAR(16777216),
-    location VARCHAR(500),
-    category VARCHAR(500),
-    subcategory VARCHAR(500),
-    role VARCHAR(200),
-    type VARCHAR(100),
-    salary VARCHAR(200),
-    listing_date VARCHAR(50),
-    salary_median_usd FLOAT
-  );
+- Transform: Parse salary range, compute median, convert MYR to USD. 
+  - Since the dataset features job listings from Malaysia, salaries are originally reported in Malaysian Ringgit (MYR). To enable clearer comparison and interpretation, we will convert MYR to USD, providing a more standardized view of compensation levels.
 
-Optional: set SNOWFLAKE_ROLE in this file, or "role" in connection Extra JSON, to use a specific role.
+- Load: Write to Snowflake table production.careers.job_listings (connection_id: data_warehouse).
 
-Optional Variables:
-  - "myr_to_usd_rate" (e.g. 0.22) to override default MYR→USD rate.
-  - "job_etl_max_rows": max rows to load (default 10); increase for more data; ~59k exceeds XCom limits.
+Schedule - @daily
+
+Start_date - December 1, 2021
+
+Catchup - False
+  - The scheduler will only run the most recent interval
 """
 import logging
 import re
@@ -45,16 +38,16 @@ logger = logging.getLogger(__name__)
 
 CONN_ID = "data_warehouse"
 DATASET_NAME = "azrai99/job-dataset"
-# Snowflake target: database.schema.table — use UPPERCASE so quoted identifiers match Snowflake
+
+# Snowflake target:
 DATABASE_NAME = "PRODUCTION"
 SCHEMA_NAME = "CAREERS"
 TABLE_NAME = "JOB_LISTINGS"  # plural — must match actual table name in Snowflake
-# Optional: Snowflake role for the session (or set "role" in connection Extra JSON)
 SNOWFLAKE_ROLE = "ASTRONOMER_RW"
 
-# MYR to USD rate; override via Airflow Variable "myr_to_usd_rate" (e.g. 0.22)
+# MYR to USD rate; 
 DEFAULT_MYR_TO_USD = 0.22
-# Cap rows passed between tasks (XCom size limit); set Variable "job_etl_max_rows" to change
+# Number of rows to read
 DEFAULT_MAX_ROWS = 1000
 
 
@@ -94,7 +87,7 @@ def external_connection_etl():
         except (ValueError, TypeError):
             max_rows = DEFAULT_MAX_ROWS
         logger.info("Loading dataset %s (max_rows=%s)", DATASET_NAME, max_rows)
-        # Load only the first max_rows rows from the dataset (faster, less memory)
+        # Load only the first max_rows rows from the dataset
         ds = load_dataset(DATASET_NAME, split=f"train[:{max_rows}]")
         rows = [dict(r) for r in ds]
         logger.info("Extracted %d rows", len(rows))

@@ -1,121 +1,73 @@
 """
 4. Create your own crazy DAG that results in the most complex looking “Graph View” representation of the DAG as possible. The more lines, dependencies, etc, the better! Feel free to have fun with this one.
+
+This DAG contains 26 tasks:
+- start
+- layer 1
+  - 6 tasks
+    - L1_N0 to L1_N5
+- layer 2
+  - 12 tasks
+    - L2_N0 to L2_N11
+- layer 3
+  - 6 tasks
+    - L3_N0 to L3_N5
+- end
+
+Schedule - No schedule, therefore, we should trigger this DAG manually
+
+Start_date - December 1, 2021
+
+Catchup - False
+  - The scheduler will only run the most recent interval
+
 """
+
 from datetime import datetime
 
 from airflow.decorators import dag, task
-
+from airflow.models.baseoperator import cross_downstream
 
 @dag(
-    dag_id="crazy_graph_dag",
-    schedule=None,
+    dag_id='crazy_graph_dag',
     start_date=datetime(2021, 12, 1),
+    schedule=None,
     catchup=False,
-    tags=["crazy", "graph-demo"],
+    tags=['crazy', 'graph_demo']
 )
 def crazy_graph_dag():
-    @task
-    def start():
-        pass
 
     @task
-    def branch_a1():
-        pass
+    def leaf_node(label):
+        return label
 
-    @task
-    def branch_b1():
-        pass
+    start = leaf_node.override(task_id="START")("start")
+    
+    # Layer 1: 6 nodes 
+    l1 = [leaf_node.override(task_id=f"L1_N{i}")(f"L1_{i}") for i in range(6)]
+    
+    # Layer 2: 12 nodes 
+    l2 = [leaf_node.override(task_id=f"L2_N{i}")(f"L2_{i}") for i in range(12)]
+    
+    # Layer 3: 6 nodes
+    l3 = [leaf_node.override(task_id=f"L3_N{i}")(f"L3_{i}") for i in range(6)]
+    
+    # End
+    end = leaf_node.override(task_id="END")("end")
+    
+    # Start connect to all the L1 nodes
+    start >> l1
 
-    @task
-    def branch_c1():
-        pass
+    # Connect every L1 node to every L2 node
+    cross_downstream(l1, l2)
 
-    @task
-    def a2a():
-        pass
+    # Connect every L2 node to every L3 node
+    cross_downstream(l2, l3)
 
-    @task
-    def a2b():
-        pass
+    # Connect Layer 3 to End 
+    l3 >> end
 
-    @task
-    def b2a():
-        pass
-
-    @task
-    def b2b():
-        pass
-
-    @task
-    def c2a():
-        pass
-
-    @task
-    def c2b():
-        pass
-
-    @task
-    def mid_converge():
-        pass
-
-    @task
-    def path_p():
-        pass
-
-    @task
-    def path_q():
-        pass
-
-    @task
-    def path_r():
-        pass
-
-    @task
-    def end():
-        pass
-
-    # Entry layer
-    start_task = start()
-
-    # Branch into 3
-    a1_task = branch_a1()
-    b1_task = branch_b1()
-    c1_task = branch_c1()
-    start_task >> [a1_task, b1_task, c1_task]
-
-    # Each branch fans out to 2
-    a2a_t = a2a()
-    a2b_t = a2b()
-    b2a_t = b2a()
-    b2b_t = b2b()
-    c2a_t = c2a()
-    c2b_t = c2b()
-    a1_task >> [a2a_t, a2b_t]
-    b1_task >> [b2a_t, b2b_t]
-    c1_task >> [c2a_t, c2b_t]
-
-    # Cross-connections
-    a2a_t >> b2a_t
-    a2a_t >> c2a_t
-    b2a_t >> a2b_t
-    c2b_t >> b2b_t
-
-    # Mid-layer convergence
-    mid_t = mid_converge()
-    [a2b_t, b2b_t, c2b_t] >> mid_t
-
-    # Branch again from mid
-    p_t = path_p()
-    q_t = path_q()
-    r_t = path_r()
-    mid_t >> [p_t, q_t, r_t]
-    p_t >> q_t
-    p_t >> r_t
-    q_t >> r_t
-
-    # Final fan-in
-    end_t = end()
-    [p_t, q_t, r_t] >> end_t
-
+    # Connect the start to the end
+    start >> end
 
 crazy_graph_dag()
