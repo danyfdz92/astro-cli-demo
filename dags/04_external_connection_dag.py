@@ -48,7 +48,7 @@ SNOWFLAKE_ROLE = "ASTRONOMER_RW"
 # MYR to USD rate; 
 DEFAULT_MYR_TO_USD = 0.22
 # Number of rows to read
-DEFAULT_MAX_ROWS = 1000
+DEFAULT_MAX_ROWS = 100000
 
 
 def _parse_salary_median_myr(salary_raw: Any) -> Optional[float]:
